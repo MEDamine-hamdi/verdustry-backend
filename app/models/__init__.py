@@ -2,3 +2,9 @@ from app.models.role import Role
 from app.models.company import Company
 from app.models.user import User
 from app.models.verification_token import VerificationToken
+from app.models.site import Site
+from app.models.supplier import Supplier
+from app.models.target import Target
+from app.models.data_source import DataSource
+from app.models.import_log import ImportLog
+from app.models.emission import Emission

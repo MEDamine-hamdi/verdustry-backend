@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, func
 from sqlalchemy.orm import relationship
-
 from app.db.base import Base
 
 
@@ -12,7 +11,10 @@ class Company(Base):
     tax_id = Column(String(100), unique=True, nullable=False, index=True)
     sector = Column(String(255), nullable=True)
     country = Column(String(255), nullable=True)
-
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     users = relationship("User", back_populates="company")
+    sites = relationship("Site", back_populates="company")
+    suppliers = relationship("Supplier", back_populates="company")
+    targets = relationship("Target", back_populates="company")
+    data_sources = relationship("DataSource", back_populates="company")
