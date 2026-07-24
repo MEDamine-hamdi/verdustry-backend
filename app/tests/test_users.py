@@ -14,95 +14,84 @@ def test_get_users_without_token(client):
     assert response.status_code == 401
 
 
-def test_create_user_as_admin(client, admin_token, db_session):
-    from app.models.role import Role
-    role = db_session.query(Role).filter(Role.name == "EXECUTIVE").first()
-
+def test_create_user_as_admin(client, admin_token, test_company_id):
     response = client.post(
         "/api/v1/users",
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "email": "newuser@verdustry.com",
             "password": "password123",
-            "full_name": "New User",
-            "role_id": role.id,
+            "name": "New User",
+            "role": "EXECUTIVE",
+            "companyId": test_company_id,
         },
     )
     assert response.status_code == 201
     data = response.json()
     assert data["email"] == "newuser@verdustry.com"
-    assert data["role"]["name"] == "EXECUTIVE"
+    assert data["role"] == "EXECUTIVE"
 
 
-def test_create_user_duplicate_email(client, admin_token, db_session):
-    from app.models.role import Role
-    role = db_session.query(Role).filter(Role.name == "EXECUTIVE").first()
-
+def test_create_user_duplicate_email(client, admin_token, test_company_id):
     response = client.post(
         "/api/v1/users",
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "email": "admin@verdustry.com",
             "password": "password123",
-            "full_name": "Duplicate",
-            "role_id": role.id,
+            "name": "Duplicate",
+            "role": "EXECUTIVE",
+            "companyId": test_company_id,
         },
     )
     assert response.status_code == 400
 
 
-def test_get_user_by_id(client, admin_token):
-    response = client.get(
-        "/api/v1/users/1",
+def test_update_user(client, admin_token, test_company_id):
+    create = client.post(
+        "/api/v1/users",
         headers={"Authorization": f"Bearer {admin_token}"},
+        json={
+            "email": "toupdate@verdustry.com",
+            "password": "password123",
+            "name": "To Update",
+            "role": "EXECUTIVE",
+            "companyId": test_company_id,
+        },
     )
-    assert response.status_code == 200
-    assert response.json()["id"] == 1
+    user_id = create.json()["id"]
 
-
-def test_get_user_not_found(client, admin_token):
-    response = client.get(
-        "/api/v1/users/9999",
-        headers={"Authorization": f"Bearer {admin_token}"},
-    )
-    assert response.status_code == 404
-
-
-def test_update_user(client, admin_token):
     response = client.put(
-        "/api/v1/users/1",
+        f"/api/v1/users/{user_id}",
         headers={"Authorization": f"Bearer {admin_token}"},
-        json={"full_name": "Updated Name"},
+        json={"name": "Updated Name"},
     )
     assert response.status_code == 200
-    assert response.json()["full_name"] == "Updated Name"
+    assert response.json()["name"] == "Updated Name"
 
 
-def test_delete_user(client, admin_token, db_session):
-    from app.models.role import Role
-    from app.models.user import User
-    from app.utils.password import hash_password
-
-    role = db_session.query(Role).filter(Role.name == "EXECUTIVE").first()
-    user = User(
-        email="todelete@verdustry.com",
-        hashed_password=hash_password("password123"),
-        full_name="To Delete",
-        role_id=role.id,
-        is_active=True,
+def test_delete_user(client, admin_token, test_company_id):
+    create = client.post(
+        "/api/v1/users",
+        headers={"Authorization": f"Bearer {admin_token}"},
+        json={
+            "email": "todelete@verdustry.com",
+            "password": "password123",
+            "name": "To Delete",
+            "role": "EXECUTIVE",
+            "companyId": test_company_id,
+        },
     )
-    db_session.add(user)
-    db_session.commit()
-    db_session.refresh(user)
+    user_id = create.json()["id"]
 
     response = client.delete(
-        f"/api/v1/users/{user.id}",
+        f"/api/v1/users/{user_id}",
         headers={"Authorization": f"Bearer {admin_token}"},
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
 
 
-def test_non_admin_cannot_create_user(client, db_session):
+def test_non_admin_cannot_create_user(client, db_session, test_company_id):
     from app.models.role import Role
     from app.models.user import User
     from app.utils.password import hash_password
@@ -113,16 +102,17 @@ def test_non_admin_cannot_create_user(client, db_session):
         hashed_password=hash_password("execpass"),
         full_name="Executive",
         role_id=exec_role.id,
+        company_id=int(test_company_id),
         is_active=True,
     )
     db_session.add(exec_user)
     db_session.commit()
 
-    login_response = client.post(
+    login = client.post(
         "/api/v1/auth/login",
-        data={"username": "exec@verdustry.com", "password": "execpass"},
+        json={"email": "exec@verdustry.com", "password": "execpass"},
     )
-    exec_token = login_response.json()["access_token"]
+    exec_token = login.json()["access_token"]
 
     response = client.post(
         "/api/v1/users",
@@ -130,8 +120,9 @@ def test_non_admin_cannot_create_user(client, db_session):
         json={
             "email": "shouldfail@verdustry.com",
             "password": "password123",
-            "full_name": "Should Fail",
-            "role_id": exec_role.id,
+            "name": "Should Fail",
+            "role": "EXECUTIVE",
+            "companyId": test_company_id,
         },
     )
     assert response.status_code == 403

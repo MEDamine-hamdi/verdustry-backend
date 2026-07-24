@@ -6,6 +6,13 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USERNAME: str
+    SMTP_PASSWORD: str
+
+    TURNSTILE_SECRET_KEY: str
+
     class Config:
         env_file = ".env"
 

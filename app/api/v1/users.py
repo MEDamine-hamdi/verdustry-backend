@@ -14,20 +14,10 @@ router = APIRouter(prefix="/users", tags=["Users"])
 @router.get("", response_model=List[UserResponse])
 def get_users(
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("ADMIN", "EXECUTIVE")),
+    current_user: User = Depends(require_role("ADMIN")),
 ):
     service = UserService(db)
     return service.get_all_users()
-
-
-@router.get("/{user_id}", response_model=UserResponse)
-def get_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("ADMIN", "EXECUTIVE")),
-):
-    service = UserService(db)
-    return service.get_user(user_id)
 
 
 @router.post("", response_model=UserResponse, status_code=201)
@@ -51,7 +41,7 @@ def update_user(
     return service.update_user(user_id, user_data)
 
 
-@router.delete("/{user_id}", status_code=204)
+@router.delete("/{user_id}")
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
@@ -59,3 +49,4 @@ def delete_user(
 ):
     service = UserService(db)
     service.delete_user(user_id)
+    return {"ok": True}

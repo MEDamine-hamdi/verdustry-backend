@@ -1,28 +1,35 @@
 from typing import Optional
-from pydantic import BaseModel, EmailStr, ConfigDict
-
-from app.schemas.role import RoleResponse
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    full_name: Optional[str] = None
-    role_id: int
+    name: Optional[str] = None
+    role: str
+    companyId: Optional[str] = None
+    isActive: Optional[bool] = Field(default=None, alias="isActive")
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
-    full_name: Optional[str] = None
-    role_id: Optional[int] = None
-    is_active: Optional[bool] = None
+    name: Optional[str] = None
+    role: Optional[str] = None
+    password: Optional[str] = None
+    companyId: Optional[str] = None
+    isActive: Optional[bool] = Field(default=None, alias="isActive")
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class UserResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-    id: int
+    id: str
     email: EmailStr
-    full_name: Optional[str] = None
-    is_active: bool
-    role: RoleResponse
+    name: Optional[str] = None
+    role: str
+    isActive: bool
+    companyId: Optional[str] = None
