@@ -110,7 +110,7 @@ def test_non_admin_cannot_create_user(client, db_session, test_company_id):
 
     login = client.post(
         "/api/v1/auth/login",
-        json={"email": "exec@verdustry.com", "password": "execpass"},
+        json={"email": "exec@verdustry.com", "password": "execpass", "captcha_token": "test"},
     )
     exec_token = login.json()["access_token"]
 

@@ -11,8 +11,10 @@ from app.models.user import User
 from app.models.company import Company
 from app.utils.password import hash_password
 import app.utils.email as email_module
+import app.api.v1.auth as auth_module
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
@@ -26,6 +28,15 @@ def disable_real_emails(monkeypatch):
     monkeypatch.setattr(email_module, "send_email", lambda **kwargs: None)
 
 
+async def _fake_verify_captcha(token, ip=None):
+    return True
+
+
+@pytest.fixture(autouse=True)
+def disable_captcha(monkeypatch):
+    monkeypatch.setattr(auth_module, "verify_captcha", _fake_verify_captcha)
+
+
 @pytest.fixture(scope="function")
 def db_session():
     Base.metadata.create_all(bind=engine)
@@ -33,7 +44,8 @@ def db_session():
 
     admin_role = Role(name="ADMIN")
     executive_role = Role(name="EXECUTIVE")
-    session.add_all([admin_role, executive_role])
+    esg_role = Role(name="ESG_MANAGER")
+    session.add_all([admin_role, executive_role, esg_role])
     session.commit()
     session.refresh(admin_role)
 
@@ -54,9 +66,10 @@ def db_session():
         country="Tunisie",
     )
     session.add(test_company)
-
     session.commit()
+
     yield session
+
     session.close()
     Base.metadata.drop_all(bind=engine)
 
@@ -79,13 +92,12 @@ def client(db_session):
 def admin_token(client):
     response = client.post(
         "/api/v1/auth/login",
-        json={"email": "admin@verdustry.com", "password": "admin123"},
+        json={"email": "admin@verdustry.com", "password": "admin123", "captcha_token": "test"},
     )
     return response.json()["access_token"]
 
 
 @pytest.fixture(scope="function")
 def test_company_id(db_session):
-    from app.models.company import Company
     company = db_session.query(Company).filter(Company.tax_id == "TAX-TEST-001").first()
     return str(company.id)
