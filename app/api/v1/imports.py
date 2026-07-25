@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
 from app.core.security import require_role
+from app.core.tenant import enforce_company_access
 from app.services.import_service import ImportService
 from app.services.sql_import_service import SqlImportService
 from app.services.api_import_service import ApiImportService
@@ -36,6 +37,8 @@ def import_emissions_excel(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("ADMIN", "ESG_MANAGER")),
 ):
+    enforce_company_access(current_user, company_id)
+
     ds_repo = DataSourceRepository(db)
     data_source = DataSource(
         name=file.filename,
@@ -61,6 +64,8 @@ def import_emissions_sql(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("ADMIN", "ESG_MANAGER")),
 ):
+    enforce_company_access(current_user, int(data.companyId))
+
     ds_repo = DataSourceRepository(db)
     data_source = DataSource(
         name="Import SQL",
@@ -87,6 +92,8 @@ def import_emissions_api(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("ADMIN", "ESG_MANAGER")),
 ):
+    enforce_company_access(current_user, int(data.companyId))
+
     ds_repo = DataSourceRepository(db)
     data_source = DataSource(
         name="Import API REST",
