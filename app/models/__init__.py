@@ -8,3 +8,4 @@ from app.models.target import Target
 from app.models.data_source import DataSource
 from app.models.import_log import ImportLog
 from app.models.emission import Emission
+from app.models.benchmark_reference import BenchmarkReference
