@@ -13,3 +13,6 @@ httpx
 email-validator
 openpyxl
 pandas
+xgboost
+joblib
+scikit-learn
