@@ -1,5 +1,4 @@
-import smtplib
-from email.mime.text import MIMEText
+import requests
 from app.core.config import settings
 
 FROM_EMAIL = "amie.bnr34@gmail.com"
@@ -7,12 +6,19 @@ FROM_NAME = "Verdustry"
 
 
 def send_email(to_email: str, subject: str, body: str) -> None:
-    message = MIMEText(body, "html")
-    message["Subject"] = subject
-    message["From"] = f"{FROM_NAME} <{FROM_EMAIL}>"
-    message["To"] = to_email
-
-    with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
-        server.starttls()
-        server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-        server.sendmail(FROM_EMAIL, [to_email], message.as_string())	
+    response = requests.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={
+            "accept": "application/json",
+            "api-key": settings.BREVO_API_KEY,
+            "content-type": "application/json",
+        },
+        json={
+            "sender": {"name": FROM_NAME, "email": FROM_EMAIL},
+            "to": [{"email": to_email}],
+            "subject": subject,
+            "htmlContent": body,
+        },
+        timeout=10,
+    )
+    response.raise_for_status()
