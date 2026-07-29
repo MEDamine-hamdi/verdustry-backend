@@ -30,3 +30,16 @@ class CostPredictionRequest(BaseModel):
 
 class CostPredictionResponse(BaseModel):
     predictedCostTnd: float
+from typing import List
+
+
+class ShapFactor(BaseModel):
+    factor: str
+    value: float
+    impact: float
+    direction: str
+
+
+class OvershootExplanationResponse(BaseModel):
+    prediction: OvershootPredictionResponse
+    factors: List[ShapFactor]

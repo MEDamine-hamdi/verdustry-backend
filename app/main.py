@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import auth, users, companies, sites, suppliers, targets, imports, analytics, benchmark, predictions
+from app.api.v1 import auth, users, companies, sites, suppliers, targets, imports, analytics, benchmark, predictions,anomalies
 
 app = FastAPI(title="Verdustry API", version="0.1.0")
 app.add_middleware(
@@ -20,6 +20,7 @@ app.include_router(imports.router, prefix="/api/v1")
 app.include_router(analytics.router, prefix="/api/v1")
 app.include_router(benchmark.router, prefix="/api/v1")
 app.include_router(predictions.router, prefix="/api/v1")
+app.include_router(anomalies.router, prefix="/api/v1")
 
 
 @app.get("/health")

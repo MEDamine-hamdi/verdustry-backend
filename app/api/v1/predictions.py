@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-
+from app.schemas.prediction import OvershootExplanationResponse
 from app.core.security import require_role
 from app.services.ml_prediction_service import ml_service
 from app.schemas.prediction import (
@@ -47,3 +47,22 @@ def predict_cbam_cost(
         free_allocation_pct=data.freeAllocationPct,
     )
     return CostPredictionResponse(**result)
+
+
+@router.post("/overshoot-risk/explain", response_model=OvershootExplanationResponse)
+def explain_overshoot_risk(
+    data: OvershootPredictionRequest,
+    current_user: User = Depends(require_role("ADMIN", "ESG_MANAGER", "EXECUTIVE")),
+):
+    result = ml_service.explain_overshoot_risk(
+        sector=data.sector,
+        emissions_tco2e=data.emissionsTco2e,
+        production_volume=data.productionVolume,
+        emissions_ma3=data.emissionsMa3,
+        emissions_trend_3m=data.emissionsTrend3m,
+        target_trend_3m=data.targetTrend3m,
+        gap_to_target_pct=data.gapToTargetPct,
+        cbam_exposure_ratio=data.cbamExposureRatio,
+        eu_export_share=data.euExportShare,
+    )
+    return OvershootExplanationResponse(**result)

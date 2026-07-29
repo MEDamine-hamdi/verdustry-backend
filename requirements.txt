@@ -16,3 +16,4 @@ pandas
 xgboost
 joblib
 scikit-learn
+shap

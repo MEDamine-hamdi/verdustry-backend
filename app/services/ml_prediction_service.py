@@ -2,6 +2,7 @@ import os
 import joblib
 import xgboost as xgb
 import numpy as np
+import shap
 
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "..", "ml_models")
 
@@ -54,6 +55,70 @@ class MLPredictionService:
         return {
             "overshootRisk": bool(prediction),
             "probability": round(probability, 3),
+        }
+
+    def _get_shap_explainer(self):
+        if not hasattr(self, "_overshoot_explainer"):
+            background = joblib.load(os.path.join(MODELS_DIR, "shap_background_overshoot.pkl"))
+
+            def predict_fn(data):
+                return self.overshoot_model.predict_proba(data)[:, 1]
+
+            self._overshoot_explainer = shap.Explainer(predict_fn, background)
+        return self._overshoot_explainer
+
+    def explain_overshoot_risk(
+        self,
+        sector: str,
+        emissions_tco2e: float,
+        production_volume: float,
+        emissions_ma3: float,
+        emissions_trend_3m: float,
+        target_trend_3m: float,
+        gap_to_target_pct: float,
+        cbam_exposure_ratio: float,
+        eu_export_share: float,
+    ) -> dict:
+        try:
+            sector_encoded = self.overshoot_encoder.transform([sector])[0]
+        except ValueError:
+            sector_encoded = 0
+
+        feature_names = [
+            "Secteur", "Émissions actuelles", "Volume de production",
+            "Moyenne mobile 3 mois", "Tendance émissions", "Tendance cible",
+            "Écart à la cible", "Exposition CBAM", "Part export UE",
+        ]
+
+        features = np.array([[
+            sector_encoded, emissions_tco2e, production_volume, emissions_ma3,
+            emissions_trend_3m, target_trend_3m, gap_to_target_pct,
+            cbam_exposure_ratio, eu_export_share,
+        ]])
+
+        explainer = self._get_shap_explainer()
+        shap_values = explainer(features)
+
+        factors = []
+        for name, value, impact in zip(feature_names, features[0], shap_values.values[0]):
+            factors.append({
+                "factor": name,
+                "value": round(float(value), 3),
+                "impact": round(float(impact), 4),
+                "direction": "increases" if impact > 0 else "decreases",
+            })
+
+        factors.sort(key=lambda f: abs(f["impact"]), reverse=True)
+
+        prediction = self.predict_overshoot_risk(
+            sector, emissions_tco2e, production_volume, emissions_ma3,
+            emissions_trend_3m, target_trend_3m, gap_to_target_pct,
+            cbam_exposure_ratio, eu_export_share,
+        )
+
+        return {
+            "prediction": prediction,
+            "factors": factors,
         }
 
     def predict_cbam_cost(
