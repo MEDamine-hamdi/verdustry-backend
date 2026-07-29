@@ -5,7 +5,10 @@ from app.api.v1 import auth, users, companies, sites, suppliers, targets, import
 app = FastAPI(title="Verdustry API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://verdustry-services.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
