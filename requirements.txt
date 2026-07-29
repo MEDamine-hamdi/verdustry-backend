@@ -17,3 +17,4 @@ xgboost
 joblib
 scikit-learn
 shap
+requests
