@@ -8,6 +8,7 @@ from app.utils.password import verify_password, hash_password
 from app.utils.jwt import create_access_token
 from app.utils.email import send_email
 from app.models.user import User
+from app.core.config import settings
 
 
 class AuthService:
@@ -57,7 +58,7 @@ class AuthService:
             return
 
         code = self.token_service.create_reset_token(user.id)
-        reset_link = f"http://localhost:3000/reset-password?token={code}"
+        reset_link = f"{settings.FRONTEND_URL}/reset-password?token={code}"
 
         send_email(
             to_email=user.email,
@@ -81,7 +82,7 @@ class AuthService:
 
     def send_email_verification(self, user: User) -> None:
         code = self.token_service.create_email_verification_code(user.id)
-        verify_link = f"http://localhost:3000/verify-email?token={code}"
+        verify_link = f"{settings.FRONTEND_URL}/verify-email?token={code}"
 
         send_email(
             to_email=user.email,

@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str
     TURNSTILE_SECRET_KEY: str
     BREVO_API_KEY: str
+    FRONTEND_URL: str = "http://localhost:3000"
 
     class Config:
         env_file = ".env"
