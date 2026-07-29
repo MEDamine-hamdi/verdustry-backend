@@ -21,4 +21,6 @@ def send_email(to_email: str, subject: str, body: str) -> None:
         },
         timeout=10,
     )
+    if not response.ok:
+        print(f"BREVO ERROR {response.status_code}: {response.text}")
     response.raise_for_status()
