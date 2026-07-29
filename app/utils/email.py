@@ -2,7 +2,7 @@ import smtplib
 from email.mime.text import MIMEText
 from app.core.config import settings
 
-FROM_EMAIL = "contact@verdustry.com"
+FROM_EMAIL = "amie.bnr34@gmail.com"
 FROM_NAME = "Verdustry"
 
 
