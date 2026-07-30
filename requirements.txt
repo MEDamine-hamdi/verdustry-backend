@@ -18,3 +18,4 @@ joblib
 scikit-learn
 shap
 requests
+google-auth

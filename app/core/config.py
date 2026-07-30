@@ -1,6 +1,5 @@
 from pydantic_settings import BaseSettings
 
-
 class Settings(BaseSettings):
     DATABASE_URL: str
     SECRET_KEY: str
@@ -12,10 +11,10 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str
     TURNSTILE_SECRET_KEY: str
     BREVO_API_KEY: str
-    FRONTEND_URL: str = "http://localhost:3000"
+    FRONTEND_URL: str = "https://verdustry-services.vercel.app/"
+    GOOGLE_CLIENT_ID: str
 
     class Config:
         env_file = ".env"
-
 
 settings = Settings()

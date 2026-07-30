@@ -15,6 +15,7 @@ from app.schemas.auth import (
     RequestOtpRequest,
     VerifyOtpRequest,
     ConfirmOtpEnableRequest,
+GoogleLoginRequest,
 )
 from app.models.user import User
 
@@ -62,7 +63,23 @@ async def login(
         otpRequired=False,
     )
 
-
+@router.post("/google", response_model=LoginResponse)
+def login_with_google(
+    data: GoogleLoginRequest,
+    db: Session = Depends(get_db),
+):
+    auth_service = AuthService(db)
+    result = auth_service.login_with_google(data.idToken)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Ce compte Google n'est pas reconnu. Contactez votre administrateur.",
+        )
+    return LoginResponse(
+        access_token=result["access_token"],
+        user=_to_login_user(result["user"]),
+        otpRequired=False,
+    )
 @router.get("/me", response_model=LoginUser)
 def get_me(current_user: User = Depends(get_current_user)):
     return _to_login_user(current_user)

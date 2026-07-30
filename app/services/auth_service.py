@@ -2,12 +2,16 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+
 from app.repositories.user_repository import UserRepository
 from app.services.token_service import TokenService
 from app.utils.password import verify_password, hash_password
 from app.utils.jwt import create_access_token
 from app.utils.email import send_email
 from app.models.user import User
+from app.core.config import settings
 
 FRONTEND_URL = "https://verdustry-services.vercel.app"
 
@@ -21,6 +25,8 @@ class AuthService:
     def authenticate(self, email: str, password: str) -> Optional[User]:
         user = self.user_repository.get_by_email(email)
         if not user:
+            return None
+        if not user.hashed_password:
             return None
         if not verify_password(password, user.hashed_password):
             return None
@@ -52,6 +58,38 @@ class AuthService:
 
         token = self.create_token(user)
         return {"otpRequired": False, "access_token": token, "user": user}
+
+    def login_with_google(self, google_id_token: str) -> Optional[dict]:
+        try:
+            idinfo = id_token.verify_oauth2_token(
+                google_id_token,
+                google_requests.Request(),
+                settings.GOOGLE_CLIENT_ID,
+            )
+        except ValueError:
+            return None
+
+        email = idinfo.get("email")
+        google_sub = idinfo.get("sub")
+
+        if not email:
+            return None
+
+        user = self.user_repository.get_by_email(email)
+        if not user:
+            # Refuse: l'utilisateur doit déjà exister (créé par un admin)
+            return None
+
+        if not user.is_active:
+            return None
+
+        # Lie le compte Google au compte existant si pas déjà fait
+        if not user.google_id:
+            user.google_id = google_sub
+            self.user_repository.update(user)
+
+        token = self.create_token(user)
+        return {"access_token": token, "user": user}
 
     def request_password_reset(self, email: str) -> None:
         user = self.user_repository.get_by_email(email)

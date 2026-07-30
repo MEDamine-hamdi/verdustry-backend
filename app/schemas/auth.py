@@ -53,3 +53,7 @@ class VerifyOtpRequest(BaseModel):
 
 class ConfirmOtpEnableRequest(BaseModel):
     code: str
+
+
+class GoogleLoginRequest(BaseModel):
+    idToken: str
