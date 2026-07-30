@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import auth, users, companies, sites, suppliers, targets, imports, analytics, benchmark, predictions,anomalies
 
 app = FastAPI(title="Verdustry API", version="0.1.0")
+from app.core.config import settings
+print(f"DEBUG FRONTEND_URL = {settings.FRONTEND_URL}")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
