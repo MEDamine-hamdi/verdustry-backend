@@ -20,7 +20,7 @@ def test_create_user_as_admin(client, admin_token, test_company_id):
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "email": "newuser@verdustry.com",
-            "password": "password123",
+            "password": "Password123",
             "name": "New User",
             "role": "EXECUTIVE",
             "companyId": test_company_id,
@@ -38,7 +38,7 @@ def test_create_user_duplicate_email(client, admin_token, test_company_id):
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "email": "admin@verdustry.com",
-            "password": "password123",
+            "password": "Password123",
             "name": "Duplicate",
             "role": "EXECUTIVE",
             "companyId": test_company_id,
@@ -53,7 +53,7 @@ def test_update_user(client, admin_token, test_company_id):
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "email": "toupdate@verdustry.com",
-            "password": "password123",
+            "password": "Password123",
             "name": "To Update",
             "role": "EXECUTIVE",
             "companyId": test_company_id,
@@ -76,7 +76,7 @@ def test_delete_user(client, admin_token, test_company_id):
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "email": "todelete@verdustry.com",
-            "password": "password123",
+            "password": "Password123",
             "name": "To Delete",
             "role": "EXECUTIVE",
             "companyId": test_company_id,
@@ -119,7 +119,7 @@ def test_non_admin_cannot_create_user(client, db_session, test_company_id):
         headers={"Authorization": f"Bearer {exec_token}"},
         json={
             "email": "shouldfail@verdustry.com",
-            "password": "password123",
+            "password": "Password123",
             "name": "Should Fail",
             "role": "EXECUTIVE",
             "companyId": test_company_id,
