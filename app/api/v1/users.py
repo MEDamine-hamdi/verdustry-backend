@@ -27,7 +27,7 @@ def create_user(
     current_user: User = Depends(require_role("ADMIN")),
 ):
     service = UserService(db)
-    return service.create_user(user_data)
+    return service.create_user(user_data, actor_id=current_user.id)
 
 
 @router.put("/{user_id}", response_model=UserResponse)
@@ -38,7 +38,7 @@ def update_user(
     current_user: User = Depends(require_role("ADMIN")),
 ):
     service = UserService(db)
-    return service.update_user(user_id, user_data)
+    return service.update_user(user_id, user_data, actor_id=current_user.id)
 
 
 @router.delete("/{user_id}")
@@ -48,5 +48,5 @@ def delete_user(
     current_user: User = Depends(require_role("ADMIN")),
 ):
     service = UserService(db)
-    service.delete_user(user_id)
+    service.delete_user(user_id, actor_id=current_user.id)
     return {"ok": True}

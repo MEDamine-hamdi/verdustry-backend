@@ -1,7 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from app.api.deps import get_db
 from app.core.security import require_role
 from app.services.company_service import CompanyService
@@ -37,7 +36,7 @@ def create_company(
     current_user: User = Depends(require_role("ADMIN")),
 ):
     service = CompanyService(db)
-    return service.create_company(data)
+    return service.create_company(data, actor_id=current_user.id)
 
 
 @router.put("/{company_id}", response_model=CompanyResponse)
@@ -48,7 +47,7 @@ def update_company(
     current_user: User = Depends(require_role("ADMIN")),
 ):
     service = CompanyService(db)
-    return service.update_company(company_id, data)
+    return service.update_company(company_id, data, actor_id=current_user.id)
 
 
 @router.delete("/{company_id}")
@@ -58,5 +57,5 @@ def delete_company(
     current_user: User = Depends(require_role("ADMIN")),
 ):
     service = CompanyService(db)
-    service.delete_company(company_id)
+    service.delete_company(company_id, actor_id=current_user.id)
     return {"ok": True}

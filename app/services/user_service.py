@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
@@ -9,6 +9,7 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
 from app.utils.password import hash_password
 from app.services.auth_service import AuthService
+from app.services.audit_service import AuditService
 
 
 class UserService:
@@ -18,6 +19,7 @@ class UserService:
         self.role_repository = RoleRepository(db)
         self.company_repository = CompanyRepository(db)
         self.auth_service = AuthService(db)
+        self.audit_service = AuditService(db)
 
     def _to_response(self, user: User) -> UserResponse:
         return UserResponse(
@@ -38,7 +40,7 @@ class UserService:
     def get_all_users(self) -> List[UserResponse]:
         return [self._to_response(u) for u in self.user_repository.get_all()]
 
-    def create_user(self, user_data: UserCreate) -> UserResponse:
+    def create_user(self, user_data: UserCreate, actor_id: Optional[int] = None) -> UserResponse:
         existing_user = self.user_repository.get_by_email(user_data.email)
         if existing_user:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
@@ -70,9 +72,18 @@ class UserService:
         )
         created = self.user_repository.create(new_user)
         self.auth_service.send_email_verification(created)
+
+        self.audit_service.log(
+            actor_id=actor_id,
+            action="user.create",
+            target_type="user",
+            target_id=str(created.id),
+            details=f"email={created.email}, role={role.name}",
+        )
+
         return self._to_response(created)
 
-    def update_user(self, user_id: int, user_data: UserUpdate) -> UserResponse:
+    def update_user(self, user_id: int, user_data: UserUpdate, actor_id: Optional[int] = None) -> UserResponse:
         user = self.user_repository.get_by_id(user_id)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -97,10 +108,29 @@ class UserService:
             user.company_id = company.id
 
         updated = self.user_repository.update(user)
+
+        self.audit_service.log(
+            actor_id=actor_id,
+            action="user.update",
+            target_type="user",
+            target_id=str(updated.id),
+            details=f"email={updated.email}",
+        )
+
         return self._to_response(updated)
 
-    def delete_user(self, user_id: int) -> None:
+    def delete_user(self, user_id: int, actor_id: Optional[int] = None) -> None:
         user = self.user_repository.get_by_id(user_id)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+        deleted_email = user.email
         self.user_repository.delete(user)
+
+        self.audit_service.log(
+            actor_id=actor_id,
+            action="user.delete",
+            target_type="user",
+            target_id=str(user_id),
+            details=f"email={deleted_email}",
+        )
