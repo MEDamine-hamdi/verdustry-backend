@@ -13,8 +13,9 @@ from app.utils.password import hash_password
 import app.utils.email as email_module
 import app.api.v1.auth as auth_module
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+app.state.limiter.enabled = False
 
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
@@ -66,10 +67,9 @@ def db_session():
         country="Tunisie",
     )
     session.add(test_company)
+
     session.commit()
-
     yield session
-
     session.close()
     Base.metadata.drop_all(bind=engine)
 

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
 from app.core.security import get_current_user, verify_captcha
+from app.core.limiter import limiter
 from app.services.auth_service import AuthService
 from app.schemas.auth import (
     LoginRequest,
@@ -15,7 +16,7 @@ from app.schemas.auth import (
     RequestOtpRequest,
     VerifyOtpRequest,
     ConfirmOtpEnableRequest,
-GoogleLoginRequest,
+    GoogleLoginRequest,
 )
 from app.models.user import User
 
@@ -35,9 +36,10 @@ def _to_login_user(user: User) -> LoginUser:
 
 
 @router.post("/login", response_model=LoginResponse)
+@limiter.limit("5/minute")
 async def login(
-    credentials: LoginRequest,
     request: Request,
+    credentials: LoginRequest,
     db: Session = Depends(get_db),
 ):
     if not credentials.otp_code:
@@ -46,7 +48,7 @@ async def login(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Vérification captcha échouée.",
-        )
+            )
 
     auth_service = AuthService(db)
     result = auth_service.login_flow(credentials.email, credentials.password, credentials.otp_code)
@@ -63,8 +65,11 @@ async def login(
         otpRequired=False,
     )
 
+
 @router.post("/google", response_model=LoginResponse)
+@limiter.limit("10/minute")
 def login_with_google(
+    request: Request,
     data: GoogleLoginRequest,
     db: Session = Depends(get_db),
 ):
@@ -80,20 +85,24 @@ def login_with_google(
         user=_to_login_user(result["user"]),
         otpRequired=False,
     )
+
+
 @router.get("/me", response_model=LoginUser)
 def get_me(current_user: User = Depends(get_current_user)):
     return _to_login_user(current_user)
 
 
 @router.post("/forgot-password")
-def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def forgot_password(request: Request, data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     auth_service = AuthService(db)
     auth_service.request_password_reset(data.email)
     return {"ok": True, "message": "If this email exists, a reset link has been sent."}
 
 
 @router.post("/reset-password")
-def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def reset_password(request: Request, data: ResetPasswordRequest, db: Session = Depends(get_db)):
     auth_service = AuthService(db)
     auth_service.reset_password(data.token, data.new_password)
     return {"ok": True, "message": "Password has been reset."}
@@ -107,21 +116,24 @@ def verify_email(data: VerifyEmailRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/resend-verification")
-def resend_verification(data: ResendVerificationRequest, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def resend_verification(request: Request, data: ResendVerificationRequest, db: Session = Depends(get_db)):
     auth_service = AuthService(db)
     auth_service.resend_verification(data.email)
     return {"ok": True, "message": "If this email exists and is not verified, a new link has been sent."}
 
 
 @router.post("/request-otp")
-def request_otp(data: RequestOtpRequest, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def request_otp(request: Request, data: RequestOtpRequest, db: Session = Depends(get_db)):
     auth_service = AuthService(db)
     auth_service.request_otp(data.email)
     return {"ok": True, "message": "If this email exists, a code has been sent."}
 
 
 @router.post("/verify-otp")
-def verify_otp(data: VerifyOtpRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def verify_otp(request: Request, data: VerifyOtpRequest, db: Session = Depends(get_db)):
     auth_service = AuthService(db)
     valid = auth_service.verify_otp(data.email, data.code)
     if not valid:
