@@ -43,3 +43,4 @@ class ShapFactor(BaseModel):
 class OvershootExplanationResponse(BaseModel):
     prediction: OvershootPredictionResponse
     factors: List[ShapFactor]
+    summary: str

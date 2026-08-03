@@ -116,10 +116,35 @@ class MLPredictionService:
             cbam_exposure_ratio, eu_export_share,
         )
 
+        summary = self._build_summary(prediction, factors)
+
         return {
             "prediction": prediction,
             "factors": factors,
+            "summary": summary,
         }
+
+    def _build_summary(self, prediction: dict, factors: list) -> str:
+        proba_pct = round(prediction["probability"] * 100, 1)
+        risk_label = "un risque de dépassement" if prediction["overshootRisk"] else "un risque faible de dépassement"
+
+        increasing = [f for f in factors if f["direction"] == "increases"][:2]
+        decreasing = [f for f in factors if f["direction"] == "decreases"][:2]
+
+        parts = [
+            f"Le modèle estime {risk_label} de la cible d'émissions dans les 3 prochains mois, "
+            f"avec une probabilité de {proba_pct}%."
+        ]
+
+        if increasing:
+            names = " et ".join(f"« {f['factor']} »" for f in increasing)
+            parts.append(f"Les facteurs qui contribuent le plus à ce risque sont {names}.")
+
+        if decreasing:
+            names = " et ".join(f"« {f['factor']} »" for f in decreasing)
+            parts.append(f"À l'inverse, {names} tendent à réduire ce risque.")
+
+        return " ".join(parts)
 
     def predict_cbam_cost(
         self,
