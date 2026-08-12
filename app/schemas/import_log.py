@@ -28,3 +28,6 @@ class ApiImportRequest(BaseModel):
     url: str
     authHeader: Optional[str] = None
     companyId: str
+
+class OdooImportRequest(BaseModel):
+    companyId: str

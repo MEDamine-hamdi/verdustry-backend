@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
-
+from app.services.odoo_import_service import OdooImportService
+from app.schemas.import_log import OdooImportRequest
 from app.api.deps import get_db
 from app.core.security import require_role
 from app.core.tenant import enforce_company_access
@@ -11,7 +12,7 @@ from app.repositories.data_source_repository import DataSourceRepository
 from app.models.data_source import DataSource
 from app.models.user import User
 from app.schemas.import_log import ImportLogResponse, SqlImportRequest, ApiImportRequest
-
+from app.core.config import settings
 router = APIRouter(prefix="/imports", tags=["Imports"])
 
 
@@ -107,6 +108,30 @@ def import_emissions_api(
     log = service.import_emissions_from_api(
         url=data.url,
         auth_header=data.authHeader,
+        company_id=int(data.companyId),
+        user_id=current_user.id,
+        data_source_id=data_source.id,
+    )
+    return _to_response(log)
+@router.post("/suppliers/odoo", response_model=ImportLogResponse)
+def import_suppliers_odoo(
+    data: OdooImportRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("ADMIN", "ESG_MANAGER")),
+):
+    enforce_company_access(current_user, int(data.companyId))
+
+    ds_repo = DataSourceRepository(db)
+    data_source = DataSource(
+        name="Import ERP (Odoo)",
+        source_type="erp",
+        connection_info=settings.ODOO_URL,
+        company_id=int(data.companyId),
+    )
+    data_source = ds_repo.create(data_source)
+
+    service = OdooImportService(db)
+    log = service.import_suppliers(
         company_id=int(data.companyId),
         user_id=current_user.id,
         data_source_id=data_source.id,

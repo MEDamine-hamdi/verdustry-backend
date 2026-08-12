@@ -14,6 +14,16 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "https://verdustry-services.vercel.app/"
     GOOGLE_CLIENT_ID: str
 
+    # --- OpenLCA (IPC) ---
+    OPENLCA_IPC_HOST: str = "localhost"
+    OPENLCA_IPC_PORT: int = 8091
+
+    # --- Odoo (XML-RPC) ---
+    ODOO_URL: str
+    ODOO_DB: str
+    ODOO_USERNAME: str
+    ODOO_API_KEY: str
+
     class Config:
         env_file = ".env"
 
