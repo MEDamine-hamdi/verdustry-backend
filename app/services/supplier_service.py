@@ -18,6 +18,8 @@ class SupplierService:
             name=supplier.name,
             country=supplier.country,
             sector=supplier.sector,
+            siteId=str(supplier.site_id) if supplier.site_id else None,
+            distanceKm=supplier.distance_km,
             companyId=str(supplier.company_id),
         )
 
@@ -29,6 +31,8 @@ class SupplierService:
             name=data.name,
             country=data.country,
             sector=data.sector,
+            site_id=int(data.siteId) if data.siteId else None,
+            distance_km=data.distanceKm,
             company_id=int(data.companyId),
         )
         created = self.repo.create(supplier)
@@ -44,6 +48,10 @@ class SupplierService:
             supplier.country = data.country
         if data.sector is not None:
             supplier.sector = data.sector
+        if data.siteId is not None:
+            supplier.site_id = int(data.siteId) if data.siteId else None
+        if data.distanceKm is not None:
+            supplier.distance_km = data.distanceKm
         updated = self.repo.update(supplier)
         return self._to_response(updated)
 

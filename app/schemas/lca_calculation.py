@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
@@ -8,9 +8,22 @@ class LcaCalculationRequest(BaseModel):
     siteId: Optional[str] = None
     importLogId: Optional[str] = None
     period: Optional[str] = None
-    processRef: str  # nom ou UUID du process/product system openLCA à utiliser
-    inputData: Dict[str, Any]  # flux/quantités envoyés à openLCA, ex: {"steel_kg": 500, "electricity_kwh": 1200}
+    processRef: str
+    inputData: Dict[str, Any]
     impactMethod: Optional[str] = "IPCC 2021 GWP100"
+
+
+class LcaSaveResultRequest(BaseModel):
+    """Payload envoyé par le front après un calcul déjà effectué (mock ou réel)."""
+    companyId: str
+    siteId: Optional[str] = None
+    period: Optional[str] = None
+    processRef: str
+    inputData: Dict[str, Any]
+    impactMethod: Optional[str] = "Test GWP Method"
+    totalCarbonFootprint: float
+    unit: str = "kgCO2e"
+    resultBreakdown: List[Dict[str, Any]]
 
 
 class LcaCalculationResponse(BaseModel):
@@ -26,7 +39,7 @@ class LcaCalculationResponse(BaseModel):
     impactMethod: Optional[str] = None
     totalCarbonFootprint: Optional[float] = None
     unit: Optional[str] = None
-    resultBreakdown: Optional[Dict[str, Any]] = None
+    resultBreakdown: Optional[Any] = None
     status: str
     errorMessage: Optional[str] = None
     calculatedAt: Optional[datetime] = None

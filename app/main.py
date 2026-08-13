@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 
 from app.core.limiter import limiter
-from app.api.v1 import auth, users, companies, sites, suppliers, targets, imports, analytics, benchmark, predictions, anomalies
+from app.api.v1 import auth, users, companies, sites, suppliers, targets, imports, analytics, benchmark, predictions, anomalies, lca_calculations
 
 app = FastAPI(title="Verdustry API", version="0.1.0")
 app.state.limiter = limiter
@@ -54,7 +54,7 @@ app.include_router(analytics.router, prefix="/api/v1")
 app.include_router(benchmark.router, prefix="/api/v1")
 app.include_router(predictions.router, prefix="/api/v1")
 app.include_router(anomalies.router, prefix="/api/v1")
-
+app.include_router(lca_calculations.router, prefix="/api/v1")
 
 @app.get("/health")
 def health_check():
