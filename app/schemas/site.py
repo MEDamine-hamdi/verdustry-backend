@@ -7,6 +7,7 @@ class SiteCreate(BaseModel):
     country: Optional[str] = None
     city: Optional[str] = None
     siteType: Optional[str] = None
+    address: Optional[str] = None
     companyId: str
 
 
@@ -15,6 +16,7 @@ class SiteUpdate(BaseModel):
     country: Optional[str] = None
     city: Optional[str] = None
     siteType: Optional[str] = None
+    address: Optional[str] = None
 
 
 class SiteResponse(BaseModel):
@@ -25,4 +27,7 @@ class SiteResponse(BaseModel):
     country: Optional[str] = None
     city: Optional[str] = None
     siteType: Optional[str] = None
+    address: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     companyId: str

@@ -6,8 +6,8 @@ class SupplierCreate(BaseModel):
     name: str
     country: Optional[str] = None
     sector: Optional[str] = None
+    address: Optional[str] = None
     siteId: Optional[str] = None
-    distanceKm: Optional[float] = None
     companyId: str
 
 
@@ -15,8 +15,8 @@ class SupplierUpdate(BaseModel):
     name: Optional[str] = None
     country: Optional[str] = None
     sector: Optional[str] = None
+    address: Optional[str] = None
     siteId: Optional[str] = None
-    distanceKm: Optional[float] = None
 
 
 class SupplierResponse(BaseModel):
@@ -26,6 +26,9 @@ class SupplierResponse(BaseModel):
     name: str
     country: Optional[str] = None
     sector: Optional[str] = None
+    address: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     siteId: Optional[str] = None
     distanceKm: Optional[float] = None
     companyId: str

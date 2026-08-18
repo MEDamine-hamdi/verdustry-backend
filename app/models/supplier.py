@@ -12,10 +12,14 @@ class Supplier(Base):
     country = Column(String(255), nullable=True)
     sector = Column(String(255), nullable=True)
 
+    address = Column(String(500), nullable=True)  # adresse complète, utilisée pour le géocodage
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+
     site_id = Column(Integer, ForeignKey("sites.id"), nullable=True)
     site = relationship("Site")
 
-    distance_km = Column(Float, nullable=True)  # distance jusqu'au site livré
+    distance_km = Column(Float, nullable=True)  # calculée automatiquement (adresse fournisseur <-> adresse site)
 
     company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
     company = relationship("Company", back_populates="suppliers")

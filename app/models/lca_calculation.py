@@ -19,6 +19,9 @@ class LcaCalculation(Base):
     import_log = relationship("ImportLog")
 
     period = Column(String(20), nullable=True)  # ex: "2025-01"
+    scope = Column(Integer, nullable=True)  # 1, 2, ou 3 — cohérent avec Emission.scope
+
+    # --- Ce qui a été envoyé à openLCA ---
 
     # --- Ce qui a été envoyé à openLCA ---
     process_ref = Column(String(255), nullable=True)   # nom/UUID du process ou product system openLCA utilisé
