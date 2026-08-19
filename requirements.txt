@@ -20,3 +20,7 @@ shap
 requests
 google-auth
 slowapi
+pgvector
+sentence-transformers
+groq
+reportlab

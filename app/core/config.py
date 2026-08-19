@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     ODOO_DB: str
     ODOO_USERNAME: str
     ODOO_API_KEY: str
+    # --- RAG    ---
+    GROQ_API_KEY: str
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
 
     class Config:
         env_file = ".env"

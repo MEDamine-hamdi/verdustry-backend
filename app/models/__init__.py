@@ -11,3 +11,5 @@ from app.models.emission import Emission
 from app.models.lca_calculation import LcaCalculation
 from app.models.benchmark_reference import BenchmarkReference
 from app.models.audit_log import AuditLog
+from app.models.chat_message import ChatMessage
+from app.models.document_chunk import DocumentChunk
